@@ -4,9 +4,8 @@ description: Learn how to enable identity-based Kerberos authentication over Ser
 author: khdownie
 ms.service: azure-file-storage
 ms.topic: how-to
-ms.date: 11/19/2025
+ms.date: 02/05/2026
 ms.author: kendownie
-recommendations: false
 # Customer intent: As a storage administrator, I want to enable Microsoft Entra Kerberos authentication on Azure Files, so that hybrid and cloud-only users can securely access file shares with their Microsoft Entra credentials.
 ---
 
@@ -39,7 +38,7 @@ The following prerequisites are mandatory. Without these, you can't authenticate
 
 - If you want to authenticate hybrid identities, you'll also need AD DS and either [Microsoft Entra Connect](../../active-directory/hybrid/whatis-azure-ad-connect.md) or [Microsoft Entra Connect cloud sync](../../active-directory/cloud-sync/what-is-cloud-sync.md). You must create these accounts in Active Directory and sync them to Microsoft Entra ID. To assign Azure Role-Based Access Control (RBAC) permissions for the Azure file share to a user group, you must create the group in Active Directory and sync it to Microsoft Entra ID. This doesn't apply to cloud-only identities.
 
-- The WinHTTP Web Proxy Auto-Discovery Service (`WinHttpAutoProxySvc`) is required, and must be in the "running" state. You may optionally [disable Web Proxy Auto-Discovery (WPAD)](/troubleshoot/windows-server/networking/disable-http-proxy-auth-features#how-to-disable-wpad), but the service should still be running.
+- The WinHTTP Web Proxy Auto-Discovery Service (`WinHttpAutoProxySvc`) is required, and must be in the "running" state. For security reasons, you may optionally [disable Web Proxy Auto-Discovery (WPAD)](/troubleshoot/windows-server/networking/disable-http-proxy-auth-features#how-to-disable-wpad) via registry keys. However, you shouldn't disable the the entire `WinHttpAutoProxySvc` service, as it is responsible for a host of other functionalities, including Kerberos Key Distribution Center Proxy (KDC Proxy) requests.
 
 - The IP Helper service (`iphlpsvc`) is required, and must be in the "running" state.
 
@@ -49,9 +48,10 @@ The following prerequisites are mandatory. Without these, you can't authenticate
 
 - With Microsoft Entra Kerberos, the Kerberos ticket encryption is always AES-256. But you can set the SMB channel encryption that best fits your needs.
 
-- Cloud-only identities support (preview) is only available using a [default share-level permission](storage-files-identity-assign-share-level-permissions.md#share-level-permissions-for-all-authenticated-identities).
-
 - Azure Files SMB support for external identities is currently limited to FSLogix scenarios running on Azure Virtual Desktop (AVD). This applies to external users invited to a Microsoft Entra ID tenant in the public cloud, with the exception of cross-cloud users (those invited into the tenant from Azure Government or Azure operated by 21Vianet). Government cloud scenarios aren't supported. Non-AVD scenarios aren't supported for business-to-business guest users or users from other Microsoft Entra tenants.
+
+> [!IMPORTANT]
+> Cloud-only identities support (preview) is only available using a [default share-level permission](storage-files-identity-assign-share-level-permissions.md#share-level-permissions-for-all-authenticated-identities).
 
 ### Operating system and domain prerequisites
 
@@ -175,66 +175,11 @@ If you're connecting to a storage account via a private endpoint/private link us
 
 ## Enable cloud-only groups support (mandatory for cloud-only identities)
 
-Kerberos tickets can include a maximum of 1,010 Security Identifiers (SIDs) for groups. This is a Windows specification limit. With Entra Kerberos now supporting cloud-only identities (in addition to hybrid), tickets must include both on-premises group SIDs and cloud group SIDs. Large enterprises often have users in hundreds or thousands of groups, including nested and dynamic memberships. If the combined group SIDs exceed 1,010, the Kerberos ticket cannot be issued and authentication fails. This is especially problematic for SMB access scenarios like Azure Files, where NTFS ACL checks depend on complete group membership in the ticket.
+Kerberos tickets can include a maximum of 1,010 Security Identifiers (SIDs) for groups. Now that Microsoft Entra Kerberos supports Entra-only identities (preview), tickets must include both on-premises group SIDs and cloud group SIDs. If the combined group SIDs exceed 1,010, the Kerberos ticket can't be issued. 
 
-As a short-term solution,  apps using Entra Kerberos for cloud-only identities can add a Tag in their application manifest. When the Kerberos service sees this tag, it knows the request involves cloud-only identities. Sign-in and PRT issuance succeed; however, failures may happen at service ticket time when the user accesses a Kerberos protected resource and exceeds the 1010 group SIDs limit.
+If you're using Microsoft Entra Kerberos to authenticate cloud-only identities, you'll need to update the Tags in your application manifest file, or authentication will fail. 
 
-### Typical end-user errors
-
-**Windows SMB / Azure Files**
-    - Mapping/mount attempts may fail with generic SMB errors (for example System error 86 or 1327 can appear in other policy conflicts like MFA). 
-    - Access may succeed for smaller-group users but intermittently fail for heavily grouped users in the same tenant due to user exceeding the 1010 group SIDs limit.
-
-**Sign in vs. resource access**
-    - Sign-in and PRT issuance succeed; failures happen at service ticket time (when the user accesses a Kerberos protected resource).
-
-**Entra Sign-in log entry**
-    - The error 140011 – KerberosUsersGroupNumberExceeded in the Entra sign-in log indicates that the Kerberos ticket issuance process failed because the user's effective group membership exceeded the maximum allowed number of Security Identifiers (SIDs) in a Kerberos ticket. Admin should reduce group memberships for affected users (especially nested/dynamic groups).
-
-### How to update Tags attribute in application manifest file?
-
-**Option 1: Update Tags in the Entra Admin Portal**
-
-1. Sign in to Microsoft Entra admin center or Cloud Application Administrator role.
-2. Navigate to:
-   - Entra ID → App registrations → Select your application.
-3. Under Manage, click Manifest.
-   - In the JSON editor, locate the tags property and add "kdc_enable_cloud_group_sids".
-4. Click Save to apply changes.
- 
-**Option 2: Update Tags Using Microsoft Graph API (Permissions: Application.ReadWrite.All)**
-
-#### Request body
-```http
-PATCH https://graph.microsoft.com/v1.0/applications/{applicationObjectId}
-Content-Type: application/json
-{
-   "tags": [
-           "kdc_enable_cloud_group_sids"
-    ]
-}
-```
- 
-**Option 3: Update Tags Using PowerShell cmdlets**
-
-1. Start PowerShell with administrator privileges.
-2. Install and import the Microsoft Graph PowerShell SDK.
-
-   ```powershell
-   Install-Module Microsoft.Graph -Scope CurrentUser
-   Import-Module Microsoft.Graph.Authentication
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-3. Connect to the tenant and accept all.
-
-   ```powershell
-   Connect-MGGraph -Scopes "Application.ReadWrite.All" -TenantId <tenantId>
-   ```
-4. List certificateUserIds attribute of a given user.
-
-   ```powershell
-   Update-MgApplication -ApplicationId "<AppObjectId>" -Tags @("kdc_enable_cloud_group_sids")
-   ```
+Follow [these instructions](/entra/identity/authentication/kerberos#group-sid-limit-in-entra-kerberos-preview) to update the tag in your application manifest.
 
 ## Disable multifactor authentication on the storage account
 
@@ -283,6 +228,8 @@ Configure this Intune [Policy CSP](/windows/client-management/mdm/policy-configu
 
 Configure this group policy on the client(s) to "Enabled": `Administrative Templates\System\Kerberos\Allow retrieving the Azure AD Kerberos Ticket Granting Ticket during logon`
 
+On older versions of Windows, this setting will be called: `Administrative Templates\System\Kerberos\Allow retrieving the cloud Kerberos ticket during the logon`
+ 
 This setting allows the client to retrieve a cloud-based Kerberos Ticket Granting Ticket (TGT) during user logon.
 
 # [Registry Key](#tab/regkey)

@@ -2,8 +2,8 @@
 title: Get Started with ADR and Certificate Management in IoT Hub (Preview)
 titleSuffix: Azure IoT Hub
 description: This article explains how to create an IoT Hub with ADR integration and Microsoft-backed X.509 certificate management.
-author: SoniaLopezBravo
-ms.author: sonialopez
+author: cwatson-cat
+ms.author: cwatson
 ms.service: azure-iot-hub
 services: iot-hub
 ms.topic: how-to
@@ -20,7 +20,8 @@ This article explains how to create a new IoT Hub with [Azure Device Registry (A
 
 ## Prerequisites
 
-- An active Azure subscription. If you don't have an Azure subscription, create a [free account](https://azure.microsoft.com/free/).
+- An active Azure subscription. If you don't have an Azure subscription, create a [free account](https://azure.microsoft.com/pricing/purchase-options/azure-account?cid=msft_learn).
+- Select a [supported region](iot-hub-what-is-new.md#supported-regions) to deploy instances of  IoT Hub, Azure Device Registry, and Device Provisioning Service.
 - If you don't have the Azure CLI installed, follow the steps to [install the Azure CLI](/cli/azure/install-azure-cli). 
 - Install the **Azure IoT CLI extension with previews enabled** to access the ADR integration and certificate management functionalities for IoT Hub:
 
@@ -48,13 +49,13 @@ This article explains how to create a new IoT Hub with [Azure Device Registry (A
         az extension add --upgrade --source https://github.com/Azure/azure-iot-cli-extension/releases/download/v0.30.0b1/azure_iot-0.30.0b1-py3-none-any.whl
         ```
     
-    1. After the install, validate your azure-iot extension version is greater than **0.30.0b1**.
+    1. After the install, validate your azure-iot extension version is at least **0.30.0b1**.
     
         ```azurecli-interactive
         az extension list
         ``` 
 
-- Ensure that you have the privilege to perform role assignments within your target scope. Performing role assignments in Azure requires a [privileged role](../role-based-access-control/built-in-roles.md#privileged), such as Owner or User Access Administrator at the appropriate scope. 
+- Ensure that you have the privilege to perform role assignments within your target scope. Performing role assignments in Azure requires a [privileged role](../role-based-access-control/built-in-roles.md#privileged), such as Owner or User Access Administrator at the appropriate scope.
 
 ## Choose a deployment method
 
@@ -86,8 +87,8 @@ At this point, your IoT Hub with ADR integration and certificate management is s
 
 **New**: Certificate management is supported across select [DPS Device SDKs](../iot-dps/libraries-sdks.md#device-sdks). You can now onboard devices using Microsoft-backed X.509 certificate management with the following SDK samples:
 
-- Embedded C:
-    - Bare metal: [Sample](Https://github.com/Azure/azure-sdk-for-c/blob/feature/dps-csr-preview/sdk/samples/iot/paho_iot_provisioning_csr_sample.c)
-    - Free RTOS: [Sample](https://github.com/Azure-Samples/iot-middleware-freertos-samples/tree/feature/dps-csr-preview/demos/projects/PC/linux)
-- C: [Sample](https://github.com/Azure/azure-iot-sdk-c/tree/feature/dps-csr-preview/provisioning_client/samples/prov_dev_client_ll_x509_csr_sample)
-- Python: [Sample](https://github.com/Azure/azure-iot-sdk-python/blob/feature/dps-csr-preview/azure-iot-device/samples/dps-cert-mgmt/provisioning_client_certificate_issuance.py)
+- [DPS Device SDKs](../iot-dps/libraries-sdks.md#certificate-management-device-sdks-preview)
+- [Embedded Device SDKs](../iot-dps/libraries-sdks.md#certificate-management-embedded-device-sdks-preview)
+
+
+

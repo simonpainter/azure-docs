@@ -83,7 +83,7 @@ items:
   - name: Reliability
     items:
     - name: Reliability in Azure Logic Apps
-      href: ../reliability/reliability-logic-apps.md?toc=/azure/logic-apps/toc.json
+      href: /azure/reliability/reliability-logic-apps?toc=/azure/logic-apps/toc.json
     - name: Multi-region deployments for disaster recovery
       href: multi-region-disaster-recovery.md
   - name: Security
@@ -105,8 +105,8 @@ items:
       href: ../connectors/compare-built-in-azure-connectors.md
     - name: Estimate storage costs
       href: estimate-storage-costs.md
-    - name: Set up SQL storage
-      href: set-up-sql-db-storage-single-tenant-standard-workflows.md
+    - name: Set up SQL database storage
+      href: set-up-sql-database-storage-standard.md
     - name: Create Standard workflows - Portal
       href: create-single-tenant-workflows-azure-portal.md
     - name: Create Standard workflows from templates - Portal
@@ -213,8 +213,6 @@ items:
       items:
       - name: Why migrate from BizTalk Server?
         href: biztalk-server-migration-overview.md
-      - name: Which integration services to choose
-        href: azure-integration-services-choose-capabilities.md
       - name: Migration options and best practices
         href: biztalk-server-migration-approaches.md
   - name: Develop
@@ -616,7 +614,9 @@ items:
       - name: TriggerMock class
         href: testing-framework/trigger-mock-class-definition.md
       - name: UnitTestExecutor class
-        href: testing-framework/unit-test-executor-class-definition.md    
+        href: testing-framework/unit-test-executor-class-definition.md
+      - name: DataMapTestExecutor class
+        href: testing-framework/data-map-test-executor-class-definition.md       
   - name: Azure Policy built-ins
     displayName: samples, policies, definitions
     href: ./policy-reference.md

@@ -1,7 +1,7 @@
 ---
 title: Build a custom remote MCP server using Azure Functions
 description: "Learn how to create and deploy a custom Model Context Protocol (MCP) server using Azure Functions. This quickstart uses the Azure Developer CLI to deploy an MCP server project that enables AI clients to access custom tools hosted on Azures Flex Consumption plan."
-ms.date: 11/04/2025
+ms.date: 12/01/2025
 ms.topic: quickstart
 ai-usage: ai-assisted
 ms.collection: 
@@ -23,7 +23,7 @@ Because the new app runs on the Flex Consumption plan, which follows a _pay-for-
 
 ::: zone pivot="programming-language-javascript,programming-language-powershell"  
 > [!IMPORTANT]  
-> This article is currently only supported in C#, Java, Python, and TypeScript. To complete the quickstart, select one of these supported languages at the top of the article.
+> While [creating custom MCP servers](./functions-bindings-mcp.md) is supported for all Functions languages, this quickstart scenario currently only has examples for C#, Python, and TypeScript. To complete this quickstart, select one of these supported languages at the top of the article. 
 ::: zone-end  
 ::: zone pivot="programming-language-typescript"
 This article supports version 4 of the Node.js programming model for Azure Functions.
@@ -178,9 +178,9 @@ You can review the code that defines the MCP server tools:
 ::: zone pivot="programming-language-csharp"
 The function code for the MCP server tools is defined in the `src` folder. The `McpToolTrigger` attribute exposes the functions as MCP Server tools:
 
-:::code language="csharp" source="~/functions-scenarios-custom-mcp-dotnet/src/HelloTool.cs" range="10-17" :::  
+:::code language="csharp" source="~/functions-scenarios-custom-mcp-dotnet/src/FunctionsMcpTool/HelloTool.cs" range="10-17" :::  
 
-:::code language="csharp" source="~/functions-scenarios-custom-mcp-dotnet/src/SnippetsTool.cs" range="11-34" :::
+:::code language="csharp" source="~/functions-scenarios-custom-mcp-dotnet/src/FunctionsMcpTool/SnippetsTool.cs" range="11-34" :::
 
 You can view the complete project template in the [Azure Functions .NET MCP Server](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) GitHub repository.
 ::: zone-end  
